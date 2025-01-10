@@ -7,7 +7,7 @@ import pytesseract
 pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
 
 class ORBCardRecognizer:
-    def __init__(self, card_images_directory='card_imgs', good_match_threshold=200):
+    def __init__(self, card_images_directory='/home/gman/blackjack_project/tests/test_dataset', good_match_threshold=200):
         self.card_images_directory = card_images_directory
         self.good_match_threshold = good_match_threshold
         self.template_images = {}

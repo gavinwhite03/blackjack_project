@@ -3,27 +3,27 @@ import numpy as np
 import os
 
 class TemplateMatcher:
-    def __init__(self, card_img_folder='processed_dataset/thresholded/cropped'):
+    def __init__(self, card_img_folder='/home/gman/blackjack_project/tests/test_dataset'):
         self.card_img_folder = card_img_folder
         self.rank_templates = {}
         self.suit_templates = {}
         self._load_templates()
 
     def _load_templates(self):
-        """Load rank and suit templates from the folder."""
         for filename in os.listdir(self.card_img_folder):
             file_path = os.path.join(self.card_img_folder, filename)
-            img = cv2.imread(file_path, 0)
+            img = cv2.imread(file_path, 0)  # Load in grayscale
             if img is None:
-                print(f"Failed to load image {filename}")
+                print(f"Failed to load image: {file_path}")
                 continue
-
             if "rank_" in filename:
                 rank = filename.split('_')[1].split('.')[0]
                 self.rank_templates[rank] = img
+                print(f"Loaded rank template: {rank}")
             elif "suit_" in filename:
                 suit = filename.split('_')[1].split('.')[0]
                 self.suit_templates[suit] = img
+                print(f"Loaded suit template: {suit}")
 
     def preprocess_frame(self, frame):
         """Preprocess the input frame."""
@@ -91,7 +91,7 @@ class TemplateMatcher:
 # Main execution loop (for testing)
 if __name__ == "__main__":
     matcher = TemplateMatcher()
-    cap = cv2.VideoCapture(0)  # Adjust camera index as needed
+    cap = cv2.VideoCapture(0)  
 
     while True:
         ret, frame = cap.read()
