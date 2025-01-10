@@ -3,7 +3,7 @@ import numpy as np
 import os
 import pytesseract
 
-# Set the path to the Tesseract executable (adjust path for Raspberry Pi)
+# Set the path to the Tesseract executable
 pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
 
 class ORBCardRecognizer:
@@ -98,23 +98,9 @@ class ORBCardRecognizer:
             cv2.rectangle(frame, (x, y), (x + 100, y + 150), (0, 255, 0), 2)
         return frame
 
-# Main execution loop
-if __name__ == "__main__":
+    
+def detect_card(image):
     recognizer = ORBCardRecognizer()
-    cap = cv2.VideoCapture(0)  # Use 0 for the default camera
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        gray_frame, thresh_frame = recognizer.preprocess_frame(frame)
-        detected_cards = recognizer.detect_cards(gray_frame, thresh_frame)
-        annotated_frame = recognizer.annotate_frame(frame, detected_cards)
-
-        cv2.imshow('Card Recognition', annotated_frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
+    gray_frame, thresh_frame = recognizer.preprocess_frame(image)
+    detected_cards = recognizer.detect_cards(gray_frame, thresh_frame)
+    return detected_cards[0] if detected_cards else {"rank": None, "suit": None}

@@ -45,9 +45,8 @@ class ImagePreprocessor:
 
 # Main execution
 if __name__ == "__main__":
-    # Adjust these paths as needed
-    input_dir = 'raw_dataset/suit'
-    output_dir = 'processed_dataset/thresholded/cropped/suit'
+    input_dir = '/home/gman/blackjack_project/tests/test_dataset'
+    output_dir = '/home/gman/blackjack_project/processed_dataset/thresholded/cropped/suit'
 
     # Initialize the preprocessor
     preprocessor = ImagePreprocessor(input_dir, output_dir)

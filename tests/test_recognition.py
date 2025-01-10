@@ -1,7 +1,13 @@
 import cv2
 import os
 import logging
-from modules.card_recognition.card_pipeline import recognize_card
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+print("Python search paths:", sys.path)
+
+from modules.card_recognition.card_pipline import recognize_card
 
 # Configure logging
 logging.basicConfig(filename="test_results.log", level=logging.INFO, format="%(asctime)s - %(message)s")
@@ -87,7 +93,7 @@ def evaluate_results(results):
 # Main testing function
 if __name__ == "__main__":
     # Path to the test dataset
-    test_dir = "test_dataset"  # Replace with your test dataset path
+    test_dir = "/home/gman/blackjack_project/tests/test_dataset" 
 
     # Load test images
     test_images = load_test_images(test_dir)
