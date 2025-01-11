@@ -46,6 +46,13 @@ class ORBCardRecognizer:
         """Detect potential cards using contours and ORB matching."""
         contours, _ = cv2.findContours(thresh_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         detected_cards = []
+        cv2.drawKeypoints(self.test_img, self.test_kp, self.test_img, color=(0, 255, 0))
+        cv2.imwrite(f"debug_keypoints_test.jpg", self.test_img)
+
+        for label, (kp_template, _) in self.template_descriptors.items():
+        template_img = self.template_images[label]
+        cv2.drawKeypoints(template_img, kp_template, template_img, color=(255, 0, 0))
+        cv2.imwrite(f"debug_keypoints_template_{label}.jpg", template_img)
 
         for contour in contours:
             area = cv2.contourArea(contour)
@@ -56,6 +63,8 @@ class ORBCardRecognizer:
                     x, y, w, h = cv2.boundingRect(approx)
                     card_roi = gray_frame[y:y + h, x:x + w]
                     kp_card, des_card = self.orb.detectAndCompute(card_roi, None)
+                    self.test_img = card_roi
+                    self.test_kp = kp_card
                     print(f"[DEBUG] Keypoints in Card ROI: {len(kp_card) if kp_card else 0}, Descriptors: {des_card.shape if des_card is not None else 'None'}")
 
                     if des_card is not None:
@@ -69,22 +78,47 @@ class ORBCardRecognizer:
         return detected_cards
 
     def _match_card(self, des_card):
-        """Match card ROI descriptors with templates."""
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
         best_match_label = None
         best_match_score = float('inf')
 
         for label, (kp_template, des_template) in self.template_descriptors.items():
+            if des_template is None:
+                print(f"[DEBUG] Template {label} has no descriptors.")
+                continue
+            
+            if des_card is None:
+                print("[DEBUG] Test image descriptors are None.")
+                return None, float('inf')
+            
+            matches = bf.match(des_template, des_card)
+            print(f"[DEBUG] Matches for {label}: {len(matches)}")
+
             if des_template is not None:
+                # Match descriptors
                 matches = bf.match(des_template, des_card)
                 matches = sorted(matches, key=lambda x: x.distance)
-                match_score = np.mean([m.distance for m in matches[:10]])
-                print(f"[DEBUG] Matches for {label}: {len(matches)}, Best Match Distance: {matches[0].distance if matches else 'None'}")
+                print(f"[DEBUG] Matches for {label}: {len(matches)}, Match Distances: {[m.distance for m in matches[:5]]}")
 
-                if match_score < best_match_score:
-                    best_match_score = match_score
-                    best_match_label = label
+                # Save visualization of matches for debugging
+                if len(matches) > 0:
+                    template_img = self.template_images[label]
+                    # Draw keypoints and matches
+                    match_img = cv2.drawMatches(
+                        template_img, kp_template, self.test_img, self.test_kp, matches[:10], None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
+                    )
+                    cv2.imshow("Matches", match_img)
+                    cv2.waitKey(0)
+                    cv2.destroyAllWindows()
 
+                # Compute match score
+                if matches and len(matches) > 0:
+                    match_score = np.mean([m.distance for m in matches[:10]])
+                    if match_score < best_match_score:
+                        best_match_score = match_score
+                        best_match_label = label
+
+        print(f"[DEBUG] Best Match: {best_match_label}, Score: {best_match_score}")
         return best_match_label, best_match_score
 
     def _ocr_rank_detection(self, roi_top_left):

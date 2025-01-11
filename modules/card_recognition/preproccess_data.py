@@ -28,7 +28,7 @@ class ImagePreprocessor:
         # If input is a path, load the image
         if isinstance(img_or_path, (str, os.PathLike)):
             if not os.path.exists(img_or_path):
-                print(f"[ERROR] Invalid image path: {img_or_path}")
+                # print(f"[ERROR] Invalid image path: {img_or_path}")
                 return None, None
             img = cv2.imread(img_or_path)
         elif isinstance(img_or_path, np.ndarray):
@@ -48,14 +48,6 @@ class ImagePreprocessor:
 
         # Apply thresholding
         _, threshold_img = cv2.threshold(resized_img, self.threshold, 255, cv2.THRESH_BINARY)
-
-        # Debug: Save and visualize preprocessing steps
-        cv2.imshow("Gray", gray_img)
-        cv2.imshow("Blurred", blurred_img)
-        cv2.imshow("Resized", resized_img)
-        cv2.imshow("Threshold", threshold_img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
 
         # Save the processed image if output_dir is provided
         if self.output_dir and category and filename:

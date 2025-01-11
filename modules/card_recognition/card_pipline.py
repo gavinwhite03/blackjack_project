@@ -18,7 +18,7 @@ def recognize_card(image_path):
     Returns:
         dict: Detected card with rank and suit.
     """
-    print(f"[DEBUG] Image Path: {image_path}")
+    # print(f"[DEBUG] Image Path: {image_path}")
     # Call preprocess_image and pass the image path
     gray_frame, thresh_frame = image_preprocessor.preprocess_image(image_path)
 
