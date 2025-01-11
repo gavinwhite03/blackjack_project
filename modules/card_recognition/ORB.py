@@ -30,6 +30,7 @@ class ORBCardRecognizer:
                         self.template_images[key] = template_image
                         kp, des = self.orb.detectAndCompute(template_image, None)
                         self.template_descriptors[key] = (kp, des)
+                        print(f"Loaded Templates: {list(self.template_descriptors.keys())}")
 
     def preprocess_frame(self, frame):
         """Preprocess frame (resize, grayscale, threshold)."""
@@ -55,6 +56,7 @@ class ORBCardRecognizer:
                     x, y, w, h = cv2.boundingRect(approx)
                     card_roi = gray_frame[y:y + h, x:x + w]
                     kp_card, des_card = self.orb.detectAndCompute(card_roi, None)
+                    print(f"[DEBUG] Keypoints in Card ROI: {len(kp_card) if kp_card else 0}, Descriptors: {des_card.shape if des_card is not None else 'None'}")
 
                     if des_card is not None:
                         best_match_label, best_match_score = self._match_card(des_card)
@@ -77,6 +79,7 @@ class ORBCardRecognizer:
                 matches = bf.match(des_template, des_card)
                 matches = sorted(matches, key=lambda x: x.distance)
                 match_score = np.mean([m.distance for m in matches[:10]])
+                print(f"[DEBUG] Matches for {label}: {len(matches)}, Best Match Distance: {matches[0].distance if matches else 'None'}")
 
                 if match_score < best_match_score:
                     best_match_score = match_score

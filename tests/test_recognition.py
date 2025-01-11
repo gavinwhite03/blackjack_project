@@ -33,37 +33,30 @@ def load_test_images(test_dir):
                 logging.warning(f"Failed to load image: {file_path}")
     return test_images
 
-def test_card_recognition(test_images):
+def test_card_recognition(test_dir):
     """
-    Test the card recognition system on a list of test images.
+    Test the card recognition system on a dataset.
 
     Args:
-        test_images (list): List of tuples (filename, image).
+        test_dir (str): Path to the directory containing test images.
 
     Returns:
         list: A list of tuples (filename, expected_result, detected_result).
     """
     results = []
-    for filename, image in test_images:
-        # Extract the expected rank and suit from the filename
-        try:
+    for filename in os.listdir(test_dir):
+        if filename.endswith('.jpg'):
+            file_path = os.path.join(test_dir, filename)
+            print(f"[DEBUG] Processing file: {file_path}")
+            image = cv2.imread(file_path)
+            detected_result = recognize_card(image)
+            
+            # Extract expected rank and suit from filename
             expected_rank, expected_suit = filename.split('_of_')[0], filename.split('_of_')[1][:-4]
-        except IndexError:
-            logging.error(f"Invalid filename format: {filename}")
-            continue
+            detected_rank, detected_suit = detected_result["rank"], detected_result["suit"]
+            print(f"Test Image: {filename}, Expected: {expected_rank} of {expected_suit}, Detected: {detected_rank} of {detected_suit}")
 
-        # Run the recognition pipeline
-        detected_result = recognize_card(image)
-        detected_rank, detected_suit = detected_result.get("rank"), detected_result.get("suit")
-
-        # Log the result
-        log_message = f"Test Image: {filename}, Expected: {expected_rank} of {expected_suit}, Detected: {detected_rank} of {detected_suit}"
-        logging.info(log_message)
-        print(log_message)
-
-        # Append to results
-        results.append((filename, f"{expected_rank} of {expected_suit}", f"{detected_rank} of {detected_suit}"))
-
+            results.append((filename, f"{expected_rank} of {expected_suit}", f"{detected_rank} of {detected_suit}"))
     return results
 
 def evaluate_results(results):
@@ -93,7 +86,12 @@ def evaluate_results(results):
 # Main testing function
 if __name__ == "__main__":
     # Path to the test dataset
-    test_dir = "/home/gman/blackjack_project/tests/test_dataset" 
+    test_dir = "/home/gman/blackjack_project/tests/test_dataset"
+    if not os.path.exists(test_dir):
+        print(f"[ERROR] Test directory not found: {test_dir}")
+    else:
+        results = test_card_recognition(test_dir)
+        print(f"Total Tests: {len(results)}")
 
     # Load test images
     test_images = load_test_images(test_dir)

@@ -7,24 +7,32 @@ class TemplateMatcher:
         self.card_img_folder = card_img_folder
         self.rank_templates = {}
         self.suit_templates = {}
+        self.template_images = {}
+        self.template_descriptors = {}
+        self.orb = cv2.ORB_create()
         self._load_templates()
 
     def _load_templates(self):
+        """Load rank and suit templates from the specified folder."""
         for filename in os.listdir(self.card_img_folder):
-            file_path = os.path.join(self.card_img_folder, filename)
-            img = cv2.imread(file_path, 0)  # Load in grayscale
-            if img is None:
-                print(f"Failed to load image: {file_path}")
-                continue
-            if "rank_" in filename:
-                rank = filename.split('_')[1].split('.')[0]
-                self.rank_templates[rank] = img
-                print(f"Loaded rank template: {rank}")
-            elif "suit_" in filename:
-                suit = filename.split('_')[1].split('.')[0]
-                self.suit_templates[suit] = img
-                print(f"Loaded suit template: {suit}")
+            if filename.endswith('.jpg'):
+                # Extract rank and suit from the filename
+                card_name_parts = filename[:-4].split('_of_')
+                if len(card_name_parts) == 2:
+                    rank, suit = card_name_parts
 
+                    # Load the image in grayscale
+                    template_image = cv2.imread(
+                        os.path.join(self.card_img_folder, filename), 0
+                    )
+                    if template_image is not None:
+                        # Detect keypoints and compute descriptors for the template
+                        kp, des = self.orb.detectAndCompute(template_image, None)
+                        self.template_images[f"{rank}_{suit}"] = template_image
+                        self.template_descriptors[f"{rank}_{suit}"] = (kp, des)
+                        print(f"[DEBUG] Loaded Template: {rank}_{suit}, Keypoints: {len(kp)}, Descriptors: {des.shape if des is not None else 'None'}")
+                    else:
+                        print(f"[ERROR] Failed to load template image: {filename}")
     def preprocess_frame(self, frame):
         """Preprocess the input frame."""
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -74,6 +82,7 @@ class TemplateMatcher:
             resized_region = cv2.resize(region, (template.shape[1], template.shape[0]))
             result = cv2.matchTemplate(resized_region, template, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, _ = cv2.minMaxLoc(result)
+            print(f"[DEBUG] Template Match Score for {label}: {max_val}")
             if max_val > best_score:
                 best_score = max_val
                 best_match = label
