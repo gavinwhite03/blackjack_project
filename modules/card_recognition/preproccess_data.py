@@ -44,7 +44,7 @@ class ImagePreprocessor:
         blurred_img = cv2.GaussianBlur(gray_img, (5, 5), 0)
 
         # Resize image to the specified size
-        resized_img = cv2.resize(blurred_img, self.size)
+        resized_img = blurred_img
 
         # Apply thresholding
         _, threshold_img = cv2.threshold(resized_img, self.threshold, 255, cv2.THRESH_BINARY)
@@ -56,7 +56,7 @@ class ImagePreprocessor:
             cv2.imwrite(output_path, threshold_img)
             print(f"Processed and saved: {output_path}")
 
-        return gray_img, threshold_img
+        return threshold_img
 
     def preprocess_directory(self, category):
         """Preprocess all images in the input directory."""
