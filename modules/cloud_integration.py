@@ -21,14 +21,26 @@ def fetch_data(path):
 def initialize_data():
     ref = db.reference('/')
     ref.set({
-        "CardCount": {
-            "count": 0,
-            "optimal_action": "N/A"
+                {
+        "GameState": {
+            "Dealer": {
+            "cards": ["Ace", "King"],
+            "optimal_action": "Stand"
+            },
+            "Player1": {
+            "cards": ["7", "9"],
+            "optimal_action": "Hit"
+            },
+            "Player2": {
+            "cards": ["5", "6"],
+            "optimal_action": "Hit"
+            }
         },
         "GameStats": {
-            "total_games": 0,
-            "wins": 0,
-            "losses": 0
+            "total_games": 10,
+            "wins": 6,
+            "losses": 4
+            }
         }
     })
 
@@ -58,6 +70,41 @@ def fetch_card_count():
 def fetch_game_stats():
     ref = db.reference('/GameStats')
     return ref.get()
+
+def update_player_cards(player, cards, action):
+    """
+    Update the cards and optimal action for a specific player or dealer in Firebase.
+    :param player: String ('Dealer', 'Player1', 'Player2').
+    :param cards: List of card ranks.
+    :param action: String, optimal action (e.g., 'Hit', 'Stand').
+    """
+    ref = db.reference(f'/GameState/{player}')
+    ref.set({
+        "cards": cards,
+        "optimal_action": action
+    })
+
+def fetch_player_cards(player):
+    """
+    Fetch the cards and optimal action for a specific player or dealer.
+    :param player: String ('Dealer', 'Player1', 'Player2').
+    :return: Dictionary with cards and optimal action.
+    """
+    ref = db.reference(f'/GameState/{player}')
+    return ref.get()
+
+def update_player_cards(player, cards, action):
+    """
+    Update the cards and optimal action for a specific player or dealer in Firebase.
+    :param player: String ('Dealer', 'Player1', 'Player2').
+    :param cards: List of card ranks.
+    :param action: String, optimal action (e.g., 'Hit', 'Stand').
+    """
+    ref = db.reference(f'/GameState/{player}')
+    ref.set({
+        "cards": cards,
+        "optimal_action": action
+    })
 
 
 if __name__ == "__main__":
