@@ -39,35 +39,80 @@
     
     <script>
         async function fetchCardCount() {
-            const response = await fetch('/card_count');
-            const data = await response.json();
-            document.getElementById('card-count').innerText =
-                `Count: ${data.count}, Optimal Action: ${data.optimal_action}`;
+            try {
+                const response = await fetch('/card_count');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Card Count Data in dashboard:", data);  // Debugging output
+
+                // Use the correct key case
+                const cardCountElement = document.getElementById('card-count');
+                if (cardCountElement) {
+                    cardCountElement.innerText = `Card Count: ${data ?? "N/A"}`;
+                } else {
+                    console.error("Card count element not found in DOM.");
+                }
+                console.log("Card Count after const: ", data.CardCount);
+            } catch (error) {
+                console.error("Error fetching card count:", error);
+            }
         }
 
         async function fetchGameStats() {
-            const response = await fetch('/game_stats');
-            const data = await response.json();
-            document.getElementById('game-stats').innerText =
-                `Total Games: ${data.total_games}, Wins: ${data.wins}, Losses: ${data.losses}`;
+            try {
+                const response = await fetch('/game_stats');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Game Stats Data:", data);
+
+                document.getElementById('game-stats').innerText =
+                    `Total Games: ${data.total_games}, Wins: ${data.wins}, Losses: ${data.losses}`;
+            } catch (error) {
+                console.error("Error fetching game stats:", error);
+            }
         }
 
         async function fetchPlayer1Data() {
-            const response = await fetch('/player1');
-            const data = await response.json();
-            document.getElementById('player1-cards').innerText =
-                `Cards: ${data.cards.join(', ')}`;
-            document.getElementById('player1-action').innerText =
-                `Optimal Action: ${data.optimal_action}`;
+            try {
+                const response = await fetch('/player1');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Player1 Data from API:", data);  // Debugging output
+
+                // Update Player1 section
+                const cardsElement = document.getElementById('player1-cards');
+                const actionElement = document.getElementById('player1-action');
+
+                if (data.cards && Array.isArray(data.cards)) {
+                    cardsElement.innerText = `Cards: ${data.cards.join(', ')}`;
+                } else {
+                    cardsElement.innerText = "Cards: None";
+                }
+
+                if (data.optimal_action) {
+                    actionElement.innerText = `Optimal Action: ${data.optimal_action}`;
+                } else {
+                    actionElement.innerText = "Optimal Action: N/A";
+                }
+            } catch (error) {
+                console.error("Error fetching Player1 data:", error);
+            }
         }
 
         function updateDashboard() {
             fetchCardCount();
             fetchGameStats();
+            fetchPlayer1Data();
         }
 
-        // Update every second
-        setInterval(updateDashboard, 1000);
+        // Update every 5 seconds
+        setInterval(updateDashboard, 5000);
         updateDashboard(); // Initial fetch
     </script>
 </body>

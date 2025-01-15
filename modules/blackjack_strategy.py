@@ -87,3 +87,41 @@ def calculate_optimal_action(player_hand, dealer_card, card_count):
             return "Stand"
     else:
         return "Hit"
+
+def check_game_result(player_hand, dealer_hand):
+    """
+    Determine the game result based on the player and dealer hands.
+    :param player_hand: List of player card ranks (e.g., ['Ace', '7']).
+    :param dealer_hand: List of dealer card ranks (e.g., ['10', '6']).
+    :return: String ('win', 'loss', or 'tie').
+    """
+    def hand_value(hand):
+        value = 0
+        aces = 0
+
+        for card in hand:
+            if card in ['Jack', 'Queen', 'King']:
+                value += 10
+            elif card == 'Ace':
+                aces += 1
+                value += 11
+            else:
+                value += int(card)
+
+        while value > 21 and aces:
+            value -= 10
+            aces -= 1
+
+        return value
+
+    player_total = hand_value(player_hand)
+    dealer_total = hand_value(dealer_hand)
+
+    if player_total > 21:  # Player bust
+        return "loss"
+    elif dealer_total > 21 or player_total > dealer_total:  # Dealer bust or player has higher total
+        return "win"
+    elif player_total < dealer_total:  # Dealer has higher total
+        return "loss"
+    else:  # Tie
+        return "tie"

@@ -1,8 +1,8 @@
 import cv2
 from multiprocessing import Process
 from modules.card_detection import DetectCards
-from modules.blackjack_strategy import calculate_optimal_action, update_card_count
-from modules.cloud_integration import init_firebase, update_player_cards
+from modules.blackjack_strategy import calculate_optimal_action, update_card_count, check_game_result
+from modules.cloud_integration import init_firebase, update_player_cards, update_data, log_game_result
 from modules.web_server import app
 
 
@@ -51,6 +51,15 @@ def main():
             # Update Firebase
             update_player_cards(player_roi_name, player_cards, optimal_action)
             update_player_cards(dealer_roi_name, dealer_cards, "N/A")
+            update_data('/CardCount', card_count)
+            update_data('/GameState/Player1/optimal_action', optimal_action)
+            
+            if len(dealer_cards) >= 2:
+                # Check game result
+                result = check_game_result(player_cards, dealer_cards)
+                log_game_result(result)
+                print(f"Game Result: {result}")
+            
 
         # Display ROIs for visual feedback
         cv2.imshow('Dealer ROI', dealer_roi)
