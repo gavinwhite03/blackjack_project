@@ -1,10 +1,11 @@
 import cv2
+from multiprocessing import Process
 from modules.card_detection import DetectCards
-from modules.blackjack_strategy import calculate_optimal_action
+from modules.blackjack_strategy import calculate_optimal_action, update_card_count
 from modules.cloud_integration import init_firebase, update_player_cards
+from modules.web_server import app
 
-# Initialize Firebase
-init_firebase()
+
 
 def main():
     print("Starting Blackjack AI Assistant...")
@@ -26,42 +27,34 @@ def main():
 
         # Define ROIs
         dealer_roi = frame[:height // 2, :]  # Top half
-        player1_roi = frame[height // 2:, :width // 2]  # Bottom left
-        player2_roi = frame[height // 2:, width // 2:]  # Bottom right
-
-        rois = [
-            ("Dealer", dealer_roi),
-            ("Player1", player1_roi),
-            ("Player2", player2_roi)
-        ]
+        player1_roi = frame[height // 2:, :]  # Bottom left
 
         # Wait for 'p' key to process cards
         key = cv2.waitKey(1) & 0xFF
         if key == ord('p'):
-            for name, roi in rois:
-                # Detect cards for each ROI
-                detected_cards = DetectCards(roi)
+            # Detect cards for Player1
+            player_roi_name, player_cards = DetectCards.detect_in_roi("Player1", player1_roi)
+            print(f"{player_roi_name}: {player_cards}")
 
-                # Calculate optimal action for Player hands (skip for Dealer)
-                if name != "Dealer":
-                    dealer_card = DetectCards(dealer_roi)
-                    optimal_action = calculate_optimal_action(detected_cards, dealer_card[0] if dealer_card else None, card_count)
-                else:
-                    optimal_action = "N/A"
+            # Detect cards for Dealer
+            dealer_roi_name, dealer_cards = DetectCards.detect_in_roi("Dealer", dealer_roi)
+            print(f"{dealer_roi_name}: {dealer_cards}")
 
-                # Update card count (simplified example using +1 for each card detected)
-                card_count += len(detected_cards)
+            # Update card count
+            card_count = update_card_count(card_count, player_cards + dealer_cards)
+            print(f"Updated Card Count: {card_count}")
 
-                # Update Firebase
-                update_player_cards(name, detected_cards, optimal_action)
+            # Calculate optimal action for Player based on Dealer's visible card and card count
+            optimal_action = calculate_optimal_action(player_cards, dealer_cards[0] if dealer_cards else None, card_count)
+            print(optimal_action)
 
-                # Print results
-                print(f"{name}: Cards = {detected_cards}, Action = {optimal_action}")
+            # Update Firebase
+            update_player_cards(player_roi_name, player_cards, optimal_action)
+            update_player_cards(dealer_roi_name, dealer_cards, "N/A")
 
         # Display ROIs for visual feedback
         cv2.imshow('Dealer ROI', dealer_roi)
         cv2.imshow('Player1 ROI', player1_roi)
-        cv2.imshow('Player2 ROI', player2_roi)
 
         # Exit on 'q'
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -71,5 +64,20 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
 
+def run_flask():
+    app.run(host='0.0.0.0', port=5000)
+
 if __name__ == "__main__":
-    main()
+    # Start Flask server and card detection concurrently
+    flask_process = Process(target=run_flask)
+    flask_process.start()
+
+    try:
+        # Run card detection logic
+        main()
+    except KeyboardInterrupt:
+        print("Shutting down...")
+
+    # Ensure Flask server stops
+    flask_process.terminate()
+    flask_process.join()

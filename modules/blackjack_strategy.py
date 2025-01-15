@@ -1,3 +1,20 @@
+def update_card_count(card_count, cards):
+    """
+    Update the card count based on detected cards.
+    :param card_count: Current card count (int).
+    :param cards: List of detected cards (e.g., ['Ace', 'King']).
+    :return: Updated card count.
+    """
+    hi_lo_values = {
+        '2': 1, '3': 1, '4': 1, '5': 1, '6': 1,
+        '7': 0, '8': 0, '9': 0,
+        '10': -1, 'Jack': -1, 'Queen': -1, 'King': -1, 'Ace': -1
+    }
+    for card in cards:
+        if card in hi_lo_values:
+            card_count += hi_lo_values[card]
+    return card_count
+
 def calculate_optimal_action(player_hand, dealer_card, card_count):
     """
     Calculate the optimal action for the player based on their hand, the dealer's visible card, and the card count.
@@ -6,6 +23,9 @@ def calculate_optimal_action(player_hand, dealer_card, card_count):
     :param card_count: Current card count (Hi-Lo system).
     :return: String (Optimal action: 'Hit', 'Stand', 'Split', 'Double', or 'Surrender').
     """
+    if dealer_card is None:
+        print("Warning: Dealer card is None. Defaulting to safe 'Hit' strategy.")
+        return "Hit"  # Default safe action if dealer card is unknown
 
     def hand_value(hand):
         """
@@ -16,7 +36,7 @@ def calculate_optimal_action(player_hand, dealer_card, card_count):
         aces = 0
 
         for card in hand:
-            if card in ['J', 'Q', 'K']:
+            if card in ['Jack', 'Queen', 'King']:
                 value += 10
             elif card == 'A':
                 aces += 1
@@ -35,7 +55,7 @@ def calculate_optimal_action(player_hand, dealer_card, card_count):
     dealer_value = 10 if dealer_card in ['Jack', 'Queen', 'King'] else (11 if dealer_card == 'Ace' else int(dealer_card))
 
     # Adjust for positive or negative card count
-    aggressive_threshold = 1 if card_count > 0 else -1
+    aggressive_threshold = 1 if card_count > 3 else -1
 
     # Basic Strategy
     if player_total >= 17:

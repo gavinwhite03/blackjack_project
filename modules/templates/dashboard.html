@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack Assistant Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .data {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Blackjack Assistant Dashboard</h1>
+
+    <div class="data">
+        <h2>Card Count</h2>
+        <p id="card-count">Loading...</p>
+    </div>
+
+    <div class="data">
+        <h2>Player 1</h2>
+        <p id="player1-cards">Cards: Loading...</p>
+        <p id="player1-action">Optimal Action: Loading...</p>
+    </div>
+
+    <div class="data">
+        <h2>Game Stats</h2>
+        <p id="game-stats">Loading...</p>
+    </div>
+
+    
+    <script>
+        async function fetchCardCount() {
+            const response = await fetch('/card_count');
+            const data = await response.json();
+            document.getElementById('card-count').innerText =
+                `Count: ${data.count}, Optimal Action: ${data.optimal_action}`;
+        }
+
+        async function fetchGameStats() {
+            const response = await fetch('/game_stats');
+            const data = await response.json();
+            document.getElementById('game-stats').innerText =
+                `Total Games: ${data.total_games}, Wins: ${data.wins}, Losses: ${data.losses}`;
+        }
+
+        async function fetchPlayer1Data() {
+            const response = await fetch('/player1');
+            const data = await response.json();
+            document.getElementById('player1-cards').innerText =
+                `Cards: ${data.cards.join(', ')}`;
+            document.getElementById('player1-action').innerText =
+                `Optimal Action: ${data.optimal_action}`;
+        }
+
+        function updateDashboard() {
+            fetchCardCount();
+            fetchGameStats();
+        }
+
+        // Update every second
+        setInterval(updateDashboard, 1000);
+        updateDashboard(); // Initial fetch
+    </script>
+</body>
+</html>

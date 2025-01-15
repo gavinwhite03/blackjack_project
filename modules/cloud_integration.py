@@ -30,10 +30,6 @@ def initialize_data():
             "Player1": {
             "cards": ["7", "9"],
             "optimal_action": "Hit"
-            },
-            "Player2": {
-            "cards": ["5", "6"],
-            "optimal_action": "Hit"
             }
         },
         "GameStats": {
@@ -106,9 +102,17 @@ def update_player_cards(player, cards, action):
         "optimal_action": action
     })
 
+def fetch_player1_data():
+    """
+    Fetch Player1's detected cards and optimal action from Firebase.
+    :return: Dictionary containing Player1's cards and optimal action.
+    """
+    ref = db.reference('/GameState/Player1')
+    return ref.get()
+
 
 if __name__ == "__main__":
     # Example usage
     init_firebase()
-    update_data('/CardCount', {'count': 0, 'optimal_action': 'N/A'})
+    update_data('/CardCount', {'count': 0})
     print(fetch_data('/CardCount'))
